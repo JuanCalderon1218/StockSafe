@@ -219,3 +219,23 @@ Usan `mongomock` y no requieren credenciales reales de Atlas.
 
 Juan Carlos Calderon Rodriguez y Franco Mango Puma.
 Los articulos y el video se agregaran al completar la publicacion.
+
+
+## Backup programado desde GitHub Actions (sin abrir Atlas a todas las IP)
+
+El workflow de backup solicita a StockSafe en Render una copia cifrada de los
+productos y movimientos y la guarda fuera del cluster durante 30 dias en
+GitHub Actions Artifacts. Render se conecta a Atlas; los runners de GitHub
+no necesitan acceso de red directo a MongoDB.
+
+1. Genera un secreto de 32 o mas caracteres en PowerShell:
+   `python -c "import secrets; print(secrets.token_urlsafe(48))"`
+2. Copia ese valor PRIVADO a Render > stocksafe-inventario > Environment,
+   variable `STOCKSAFE_BACKUP_TOKEN`, y guarda con despliegue.
+3. Copia el MISMO valor a GitHub > Settings > Secrets and variables > Actions,
+   secreto `STOCKSAFE_BACKUP_TOKEN`.
+4. En GitHub > Actions > Respaldo NoSQL cifrado > Run workflow ejecuta la prueba.
+5. Comprueba que el job termine verde y descarga el `.ssb` en Artifacts.
+
+No compartas la clave o los archivos de respaldo. Conserva en privado
+`BACKUP_PASSPHRASE` para poder restaurar los respaldos cifrados.

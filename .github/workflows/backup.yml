@@ -13,21 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Descargar codigo
-        uses: actions/checkout@v4
-      - name: Preparar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-      - name: Instalar dependencias
-        run: pip install -r requirements.txt
-      - name: Generar backup cifrado
+      - name: Descargar copia cifrada desde StockSafe en Render
         env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          MONGODB_DB: stocksafe_db
-          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
-        run: python -m scripts.export_backup
+          STOCKSAFE_BACKUP_TOKEN: ${{ secrets.STOCKSAFE_BACKUP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$STOCKSAFE_BACKUP_TOKEN" ]; then
+            echo "::error::Configura STOCKSAFE_BACKUP_TOKEN en GitHub Actions y Render."
+            exit 1
+          fi
+          mkdir -p backups
+          FILE="backups/stocksafe_auto_$(date -u +%Y%m%d_%H%M%S).ssb"
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 15 \
+            --connect-timeout 30 --max-time 240 \
+            -X POST \
+            -H "Authorization: Bearer $STOCKSAFE_BACKUP_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            --output "$FILE" \
+            "https://stocksafe-inventario.onrender.com/internal/backup/export"
+          python -c "from pathlib import Path; p=next(Path('backups').glob('*.ssb')); d=p.read_bytes(); assert len(d)>48 and d[:4]==b'SSB1', 'Respaldo invalido'; print('Respaldo cifrado verificado:', len(d), 'bytes')"
       - name: Conservar copia externa
         uses: actions/upload-artifact@v4
         with:

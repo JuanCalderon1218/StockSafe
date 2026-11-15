@@ -1,6 +1,7 @@
 import csv
 import io
 import logging
+import os
 import re
 import secrets
 from collections import Counter
@@ -102,6 +103,25 @@ def denied():
 
 def ensure_admin(user):
     security.require_admin(user)
+
+
+@app.post("/internal/backup/export", include_in_schema=False)
+def backup_export_for_actions(request: Request):
+    """Generate an encrypted snapshot only for the dedicated backup automation."""
+    token = os.getenv("STOCKSAFE_BACKUP_TOKEN", "")
+    authorization = request.headers.get("authorization", "")
+    if len(token) < 32 or not secrets.compare_digest(authorization, "Bearer " + token):
+        raise HTTPException(status_code=403, detail="Acceso denegado.")
+    encrypted, _ = backups.make_encrypted_snapshot(db.get_db())
+    filename = "stocksafe_auto_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + ".ssb"
+    return Response(
+        content=encrypted,
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 @app.get("/health")

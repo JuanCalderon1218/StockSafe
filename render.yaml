@@ -24,5 +24,7 @@ services:
         sync: false
       - key: BACKUP_PASSPHRASE
         sync: false
+      - key: STOCKSAFE_BACKUP_TOKEN
+        sync: false
       - key: SESSION_SECRET
         generateValue: true

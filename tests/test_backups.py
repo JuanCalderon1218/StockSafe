@@ -53,3 +53,16 @@ def test_non_admin_cannot_restore(state):
     login(web, "op@test.local")
     assert web.get("/respaldos").status_code == 403
     assert web.get("/usuarios").status_code == 403
+
+
+def test_automation_backup_requires_token(state, monkeypatch):
+    web, database, _ = state
+    monkeypatch.delenv("STOCKSAFE_BACKUP_TOKEN", raising=False)
+    assert web.post("/internal/backup/export").status_code == 403
+    token = "test-only-bearer-token-with-at-least-32-chars"
+    monkeypatch.setenv("STOCKSAFE_BACKUP_TOKEN", token)
+    assert web.post("/internal/backup/export").status_code == 403
+    response = web.post("/internal/backup/export", headers={"Authorization": "Bearer " + token})
+    assert response.status_code == 200
+    assert response.content.startswith(b"SSB1")
+    assert response.headers["content-type"] == "application/octet-stream"
