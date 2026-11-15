@@ -26,7 +26,7 @@ def state(monkeypatch):
     monkeypatch.setattr(db, "get_db", lambda: database)
     monkeypatch.setattr(db, "get_vault", lambda: vault)
     monkeypatch.setattr(main_module, "bootstrap", lambda: database)
-    monkeypatch.setattr(settings, "backup_passphrase", "test-secret-backup-passphrase-123456")
+    monkeypatch.setattr("app.services.backups.passphrase", lambda: "test-secret-backup-passphrase-123456")
     with TestClient(main_module.app) as web:
         yield web, database, vault
 
