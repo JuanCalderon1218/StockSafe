@@ -144,7 +144,7 @@ def import_vault_backup(vault_database, encrypted: bytes):
 
 
 def list_vault_backups(vault_database, limit=40):
-    return list(_bucket(vault_database).find().sort("uploadDate", -1).limit(limit))
+    return list(_bucket(vault_database).find({}).sort("uploadDate", -1).limit(limit))
 
 
 def get_backup(vault_database, backup_id: str):
