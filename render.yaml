@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: stocksafe-inventario
+    runtime: python
+    plan: free
+    autoDeployTrigger: "off"
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.9
+      - key: STOCKSAFE_ENV
+        value: production
+      - key: MONGODB_DB
+        value: stocksafe_db
+      - key: MONGODB_VAULT_DB
+        value: stocksafe_vault
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: BACKUP_PASSPHRASE
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true

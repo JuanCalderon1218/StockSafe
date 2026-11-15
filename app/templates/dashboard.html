@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block head %}<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PANEL GENERAL</div><h1>Resumen del inventario</h1><p>Bienvenido, {{ user.name.split(' ')[0] }}. Este es el estado de tus existencias.</p></div><a href="/productos/nuevo" class="btn btn-primary"><i data-lucide="plus"></i> Nuevo producto</a></div>
+<div class="metric-grid">
+  <div class="metric-card"><div class="metric-top"><span>Productos activos</span><div class="metric-icon purple"><i data-lucide="package"></i></div></div><div class="metric-value">{{ total }}</div><div class="metric-foot"><i data-lucide="layers-3"></i> Catalogo disponible</div></div>
+  <div class="metric-card"><div class="metric-top"><span>Unidades en stock</span><div class="metric-icon blue"><i data-lucide="boxes"></i></div></div><div class="metric-value">{{ '{:,}'.format(units) }}</div><div class="metric-foot"><i data-lucide="check-circle-2"></i> Inventario actual</div></div>
+  <div class="metric-card"><div class="metric-top"><span>Valor del inventario</span><div class="metric-icon green"><i data-lucide="wallet"></i></div></div><div class="metric-value money">{{ inventory_value|pen }}</div><div class="metric-foot"><i data-lucide="trending-up"></i> Valor estimado total</div></div>
+  <div class="metric-card"><div class="metric-top"><span>Alertas de stock</span><div class="metric-icon orange"><i data-lucide="triangle-alert"></i></div></div><div class="metric-value">{{ low }}</div><div class="metric-foot"><i data-lucide="bell"></i> Productos bajo el minimo</div></div>
+</div>
+<div class="chart-grid">
+  <section class="panel"><div class="panel-heading"><div><h2>Actividad de inventario</h2><p>Movimientos de los ultimos 7 dias</p></div><span class="panel-tag">ULTIMA SEMANA</span></div><div class="chart-container"><canvas id="activityChart" aria-label="Entradas y salidas por dia"></canvas></div></section>
+  <section class="panel"><div class="panel-heading"><div><h2>Distribucion por categoria</h2><p>Productos activos por tipo</p></div></div>{% if categories %}<div class="chart-container category-chart"><canvas id="categoryChart" aria-label="Distribucion de categorias"></canvas></div>{% else %}<div class="empty-mini">Registra productos para ver estadisticas.</div>{% endif %}</section>
+</div>
+<div class="bottom-grid">
+  <section class="panel"><div class="panel-heading"><div><h2>Movimientos recientes</h2><p>Ultimas operaciones realizadas</p></div><a href="/movimientos" class="text-link">Ver todos <i data-lucide="arrow-up-right"></i></a></div><div class="table-wrap"><table><thead><tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Fecha</th></tr></thead><tbody>{% for m in movements %}<tr><td><strong>{{ m.product_name }}</strong><div class="muted-small">{{ m.sku }}</div></td><td><span class="chip {% if m.type == 'entrada' %}chip-green{% else %}chip-red{% endif %}">{{ m.type|capitalize }}</span></td><td><strong>{{ m.quantity }}</strong></td><td class="muted">{{ m.created_at|fecha }}</td></tr>{% else %}<tr><td colspan="4" class="table-empty">Aun no hay movimientos.</td></tr>{% endfor %}</tbody></table></div></section>
+  <section class="panel"><div class="panel-heading"><div><h2>Stock bajo</h2><p>Productos que necesitan atencion</p></div><div class="tiny-alert"><i data-lucide="alert-circle"></i> {{ low }}</div></div><div class="low-list">{% for p in low_products %}<div class="low-item"><div class="product-avatar"><i data-lucide="package"></i></div><div class="low-info"><strong>{{ p.name }}</strong><small>{{ p.sku }} &bull; Minimo {{ p.min_stock }}</small></div><div class="low-num">{{ p.stock }} <small>uds.</small></div></div>{% else %}<div class="empty-mini"><i data-lucide="check-circle-2"></i><p>Todo el inventario esta bajo control.</p></div>{% endfor %}</div></section>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+window.addEventListener('load', () => {
+  if (!window.Chart) return;
+  Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+  const common = {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{usePointStyle:true, boxWidth:8, padding:20}}}};
+  const a = document.getElementById('activityChart');
+  if (a) new Chart(a, {type:'line',data:{labels:{{ days|tojson }},datasets:[{label:'Entradas',data:{{ entries|tojson }},borderColor:'#5b58ea',backgroundColor:'rgba(91,88,234,0.08)',fill:true,tension:0.4,pointRadius:4},{label:'Salidas',data:{{ exits|tojson }},borderColor:'#16b8a6',backgroundColor:'rgba(22,184,166,0.08)',fill:true,tension:0.4,pointRadius:4}]},options:{...common,scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{precision:0}}}}});
+  const c=document.getElementById('categoryChart');
+  if (c) new Chart(c,{type:'doughnut',data:{labels:{{ categories|map(attribute=0)|list|tojson }},datasets:[{data:{{ categories|map(attribute=1)|list|tojson }},backgroundColor:['#605cf5','#18bea9','#f5ad55','#5598ed','#e379bd'],borderWidth:0,hoverOffset:6}]},options:{...common,cutout:'74%'}});
+});</script>{% endblock %}

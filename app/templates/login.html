@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block title %}Iniciar sesion{% endblock %}
+{% block auth_content %}
+<div class="auth-screen">
+  <div class="auth-left">
+    <div class="auth-brand"><span class="brand-mark"><i data-lucide="boxes"></i></span> Stock<span>Safe</span></div>
+    <div class="auth-motif"><div class="auth-ring r1"></div><div class="auth-ring r2"></div><div class="auth-cube"><i data-lucide="boxes"></i></div></div>
+    <div class="auth-story"><div class="auth-chip"><i data-lucide="shield-check"></i> Plataforma segura de inventario</div><h1>Gestion inteligente.<br><em>Datos protegidos.</em></h1><p>Administra tus productos, registra movimientos y protege la informacion de tu empresa con respaldos cifrados de MongoDB.</p><div class="auth-mini-stats"><span><i data-lucide="database"></i> NoSQL</span><span><i data-lucide="lock-keyhole"></i> AES-256-GCM</span><span><i data-lucide="cloud"></i> Cloud Ready</span></div></div>
+  </div>
+  <div class="auth-right"><div class="auth-card"><div class="auth-kicker">BIENVENIDO DE NUEVO</div><h2>Inicia sesion</h2><p>Ingresa con tu cuenta para acceder a StockSafe.</p>
+    {% if error %}<div class="alert alert-error"><i data-lucide="alert-triangle"></i>{{ error }}</div>{% endif %}
+    <form method="post" action="/login" class="form-stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <div class="field"><label for="email">Correo electronico</label><div class="input-icon"><i data-lucide="mail"></i><input id="email" name="email" type="email" autocomplete="username" placeholder="admin@stocksafe.local" required autofocus maxlength="150"></div></div>
+      <div class="field"><label for="password">Contrasena</label><div class="input-icon"><i data-lucide="lock-keyhole"></i><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ingresa tu contrasena" required><button type="button" class="show-pw" data-toggle-password="password" aria-label="Mostrar contrasena"><i data-lucide="eye"></i></button></div></div>
+      <button class="btn btn-primary btn-full btn-lg" type="submit">Entrar al sistema <i data-lucide="arrow-right"></i></button>
+    </form><div class="auth-hint"><i data-lucide="info"></i> El administrador inicial se configura mediante variables de entorno.</div>
+  </div></div>
+</div>
+{% endblock %}

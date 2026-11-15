@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="StockSafe, inventario y recuperacion de datos NoSQL">
+  <title>{% block title %}StockSafe{% endblock %} | Inventario NoSQL</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if not user %}auth-body{% endif %}">
+{% if user %}
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark"><i data-lucide="boxes"></i></span><span>Stock<span class="brand-accent">Safe</span><small>INVENTORY CLOUD</small></span></div>
+    <div class="sidebar-section">GENERAL</div>
+    <nav class="sidebar-nav" aria-label="Navegacion principal">
+      <a class="nav-link {% if active == 'dashboard' %}selected{% endif %}" href="/dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a class="nav-link {% if active == 'productos' %}selected{% endif %}" href="/productos"><i data-lucide="package"></i><span>Productos</span></a>
+      <a class="nav-link {% if active == 'movimientos' %}selected{% endif %}" href="/movimientos"><i data-lucide="arrow-left-right"></i><span>Movimientos</span></a>
+    </nav>
+    {% if user.role == 'admin' %}
+      <div class="sidebar-section">ADMINISTRACION</div>
+      <nav class="sidebar-nav" aria-label="Herramientas administrativas">
+        <a class="nav-link {% if active == 'respaldos' %}selected{% endif %}" href="/respaldos"><i data-lucide="database-backup"></i><span>Respaldos NoSQL</span></a>
+        <a class="nav-link {% if active == 'usuarios' %}selected{% endif %}" href="/usuarios"><i data-lucide="users-round"></i><span>Usuarios y roles</span></a>
+      </nav>
+    {% endif %}
+    <div class="sidebar-bottom">
+      <div class="sidebar-system"><span class="online-dot"></span><span>MongoDB NoSQL</span><span class="sidebar-system-status">CLOUD</span></div>
+      <div class="account"><div class="avatar">{{ user.name[0]|upper }}</div><div class="account-name"><strong>{{ user.name }}</strong><small>{{ 'Administrador' if user.role == 'admin' else 'Operador' }}</small></div></div>
+      <form action="/logout" method="post"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button type="submit" class="logout"><i data-lucide="log-out"></i> Cerrar sesion</button></form>
+    </div>
+  </aside>
+  <div class="main-area">
+    <header class="topbar">
+      <button type="button" class="mobile-toggle" id="menuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+      <div class="topbar-breadcrumb">StockSafe <span>/</span> <strong>{% block breadcrumb %}Panel{% endblock %}</strong></div>
+      <div class="topbar-right"><div class="topbar-pill"><span class="online-dot"></span> Sistema operativo</div><div class="top-avatar">{{ user.name[0]|upper }}</div></div>
+    </header>
+    <main class="content">
+      {% if flash %}<div class="alert alert-{{ flash.kind }}" role="alert"><i data-lucide="{% if flash.kind == 'error' %}alert-triangle{% else %}check-circle-2{% endif %}"></i><span>{{ flash.message }}</span><button type="button" aria-label="Cerrar" onclick="this.parentElement.remove()">&times;</button></div>{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">StockSafe &copy; {{ year }} &nbsp;&bull;&nbsp; Proyecto academico NoSQL Backup Strategy</footer>
+  </div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+<script src="/static/app.js" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

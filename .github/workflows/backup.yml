@@ -1,0 +1,37 @@
+name: Respaldo NoSQL cifrado (fuera de MongoDB)
+
+on:
+  schedule:
+    - cron: '17 12 * * *' # 07:17 en Peru (UTC-5)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Generar backup cifrado
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: stocksafe_db
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: python -m scripts.export_backup
+      - name: Conservar copia externa
+        uses: actions/upload-artifact@v4
+        with:
+          name: stocksafe-nosql-${{ github.run_id }}
+          path: backups/*.ssb
+          if-no-files-found: error
+          retention-days: 30
